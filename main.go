@@ -22,7 +22,7 @@ const (
 func init() {
 	// .envファイルの読み込み
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Warning: .env file not found")
 	}
 }
 
@@ -31,6 +31,9 @@ func main() {
 
 	// セッションミドルウェアの設定
 	sessionSecret := os.Getenv("SESSION_SECRET")
+	if sessionSecret == "" {
+		sessionSecret = "default-secret-key" // 開発用のデフォルト値
+	}
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(sessionSecret))))
 
 	// コントローラーの初期化
@@ -59,8 +62,14 @@ func main() {
 	e.GET("/api/articles", articleController.GetArticles, authController.RequireAuth)
 	e.DELETE("/api/articles", articleController.DeleteArticles, authController.RequireAuth)
 
+	// ポート番号の設定
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "10000"
+	}
+
 	// サーバー起動
-	e.Logger.Fatal(e.Start(":8081"))
+	e.Logger.Fatal(e.Start(":" + port))
 }
 
 // 認証ミドルウェア
