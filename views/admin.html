@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分野管理</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        .room-id {
+            text-align: center;
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .debug-info {
+            display: none;
+        }
+        .fields-container {
+            margin: 2rem 0;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .fields-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .field-item {
+            padding: 0.5rem 1rem;
+            margin: 0.5rem 0;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .field-left {
+            display: flex;
+            align-items: center;
+        }
+        .field-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .field-checkbox {
+            margin-right: 1rem;
+        }
+        .priority-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+        }
+        .priority-select {
+            padding: 0.25rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            background-color: white;
+        }
+        .priority-select:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        .delete-button {
+            display: block;
+            width: 200px;
+            margin: 1rem auto;
+            padding: 0.75rem;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: center;
+        }
+        .delete-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .delete-button:hover:not(:disabled) {
+            background-color: #c82333;
+        }
+        .logout-button {
+            display: block;
+            width: 200px;
+            margin: 0 auto;
+            padding: 0.75rem;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: center;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
+        .add-field-form {
+            margin: 2rem 0;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .add-field-form h2 {
+            margin-top: 0;
+        }
+        .form-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .add-button {
+            padding: 0.5rem 1rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .add-button:hover {
+            background-color: #218838;
+        }
+        .add-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+        }
+        .articles-button {
+            background-color: #007bff;
+        }
+        .articles-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>分野管理</h1>
+        <div class="welcome-message">
+            ログインに成功しました。ここは分野管理ページです。
+        </div>
+        <div class="room-id">
+            ルームID: <span id="roomId">読み込み中...</span>
+        </div>
+        <div class="add-field-form">
+            <h2>新しい分野を追加</h2>
+            <form id="addFieldForm" onsubmit="handleAddField(event)">
+                <div class="form-group">
+                    <input type="text" 
+                           id="fieldName" 
+                           class="form-input" 
+                           placeholder="分野名を入力（カンマまたは読点で区切って複数入力可能: 例「Go、Python、Java」）"
+                           required
+                    >
+                    <button type="submit" class="add-button">追加</button>
+                </div>
+            </form>
+        </div>
+        <div class="fields-container">
+            <h2>登録済み分野一覧</h2>
+            <ul id="fieldsList" class="fields-list">
+                <li class="field-item">読み込み中...</li>
+            </ul>
+            <button id="deleteButton" class="delete-button" onclick="handleDelete()" disabled>
+                選択した分野を削除
+            </button>
+        </div>
+        <div class="nav-buttons">
+            <a href="/articles" class="nav-button articles-button">過去の記事一覧へ</a>
+            <button class="nav-button logout-button" onclick="handleLogout()">ログアウト</button>
+        </div>
+    </div>
+
+    <script>
+        // 選択された分野のIDを保持する配列
+        let selectedFields = [];
+
+        // チェックボックスの状態が変更されたときの処理
+        function handleCheckboxChange(fieldName, checked) {
+            if (checked) {
+                selectedFields.push(fieldName);
+            } else {
+                selectedFields = selectedFields.filter(name => name !== fieldName);
+            }
+            // 削除ボタンの有効/無効を切り替え
+            document.getElementById('deleteButton').disabled = selectedFields.length === 0;
+        }
+
+        // 選択された分野を削除する
+        async function handleDelete() {
+            if (!confirm('選択された分野を削除してもよろしいですか？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/fields', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        field_names: selectedFields
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('分野の削除に失敗しました');
+                }
+
+                const data = await response.json();
+                alert(data.message);
+
+                // 分野一覧を再読み込み
+                loadFields();
+                
+                // 選択をリセット
+                selectedFields = [];
+                document.getElementById('deleteButton').disabled = true;
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                alert('分野の削除に失敗しました');
+            }
+        }
+
+        // 分野一覧を読み込む
+        async function loadFields() {
+            try {
+                const response = await fetch('/api/fields');
+                
+                if (!response.ok) {
+                    throw new Error('分野一覧の取得に失敗しました');
+                }
+
+                const data = await response.json();
+                const container = document.getElementById('fieldsList');
+                
+                if (data.fields && data.fields.length > 0) {
+                    container.innerHTML = data.fields
+                        .map(field => `
+                            <li class="field-item">
+                                <div class="field-left">
+                                    <input type="checkbox" 
+                                           class="field-checkbox" 
+                                           onchange="handleCheckboxChange('${field.name}', this.checked)"
+                                    >
+                                    <span>${field.name}</span>
+                                </div>
+                                <div class="field-right">
+                                    <span class="priority-label">興味の強さ:</span>
+                                    <select class="priority-select" 
+                                            onchange="handlePriorityChange('${field.name}', this.value)"
+                                            value="${field.priority || 3}">
+                                        <option value="1" ${field.priority === 1 ? 'selected' : ''}>1 (弱い)</option>
+                                        <option value="2" ${field.priority === 2 ? 'selected' : ''}>2</option>
+                                        <option value="3" ${field.priority === 3 ? 'selected' : ''}>3 (普通)</option>
+                                        <option value="4" ${field.priority === 4 ? 'selected' : ''}>4</option>
+                                        <option value="5" ${field.priority === 5 ? 'selected' : ''}>5 (強い)</option>
+                                    </select>
+                                </div>
+                            </li>
+                        `)
+                        .join('');
+                } else {
+                    container.innerHTML = '<li class="field-item">登録された分野はありません</li>';
+                }
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                document.getElementById('fieldsList').innerHTML = 
+                    '<li class="field-item">エラーが発生しました</li>';
+            }
+        }
+
+        // 新しい分野を追加する
+        async function handleAddField(event) {
+            event.preventDefault();
+            const fieldNameInput = document.getElementById('fieldName');
+            const fieldName = fieldNameInput.value.trim();
+
+            if (!fieldName) {
+                alert('分野名を入力してください');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/fields', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        field_name: fieldName
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('分野の追加に失敗しました');
+                }
+
+                const data = await response.json();
+                alert(data.message);
+
+                // フォームをリセット
+                fieldNameInput.value = '';
+
+                // 分野一覧を再読み込み
+                loadFields();
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                alert('分野の追加に失敗しました');
+            }
+        }
+
+        // ページ読み込み時にroom_idと分野一覧を取得
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/get-room-id');
+                
+                if (!response.ok) {
+                    throw new Error('Room IDの取得に失敗しました');
+                }
+
+                const data = await response.json();
+                
+                if (data && data.room_id) {
+                    document.getElementById('roomId').textContent = data.room_id;
+                } else {
+                    throw new Error('Room IDが見つかりません');
+                }
+
+                // 分野一覧を読み込む
+                await loadFields();
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                document.getElementById('roomId').textContent = 'エラーが発生しました';
+            }
+        });
+
+        async function handleLogout() {
+            try {
+                const response = await fetch('/logout', {
+                    method: 'POST',
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(data.message);
+                    window.location.replace(data.redirect);
+                }
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                alert('ログアウトに失敗しました');
+            }
+        }
+
+        // 優先度が変更されたときの処理
+        async function handlePriorityChange(fieldName, priority) {
+            try {
+                const response = await fetch('/api/fields/priority', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        field_name: fieldName,
+                        priority: parseInt(priority)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('優先度の更新に失敗しました');
+                }
+
+                const data = await response.json();
+                console.log('優先度を更新しました:', data);
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                alert('優先度の更新に失敗しました');
+            }
+        }
+    </script>
+</body>
+</html> 

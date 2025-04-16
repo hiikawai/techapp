@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記事一覧</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .room-id {
+            text-align: center;
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .article-item {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .article-field {
+            color: #28a745;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .article-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .article-url {
+            color: #007bff;
+            text-decoration: none;
+            word-break: break-all;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .article-url:hover {
+            text-decoration: underline;
+        }
+        .article-summary {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .summary-title {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        .summary-points {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .summary-point {
+            padding: 0;
+            color: #666;
+            line-height: 1;
+            margin: 0;
+        }
+        .summary-header {
+            color: #333;
+            font-weight: bold;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        .article-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .tag {
+            background-color: #e9ecef;
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+        }
+        .fields-button {
+            background-color: #28a745;
+        }
+        .fields-button:hover {
+            background-color: #218838;
+        }
+        .logout-button {
+            background-color: #dc3545;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
+        .article-checkbox {
+            margin-right: 1rem;
+            width: 20px;
+            height: 20px;
+        }
+        .article-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .delete-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        .delete-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .delete-button:hover:not(:disabled) {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>記事一覧</h1>
+        <div class="room-id">
+            ルームID: <span id="roomId">読み込み中...</span>
+        </div>
+        <button id="deleteButton" class="delete-button" onclick="handleDelete()" disabled>
+            選択した記事を削除
+        </button>
+        <div id="articlesContainer"></div>
+        <div class="nav-buttons">
+            <a href="/admin" class="nav-button fields-button">分野管理へ</a>
+            <button onclick="handleLogout()" class="nav-button logout-button">ログアウト</button>
+        </div>
+    </div>
+
+    <script>
+        // 選択された記事のIDを保持する配列
+        let selectedArticles = [];
+
+        // チェックボックスの状態が変更されたときの処理
+        function handleCheckboxChange(articleId, checked) {
+            console.log('チェックボックス変更 - article_id:', articleId, '選択状態:', checked); // デバッグ用
+            if (checked) {
+                selectedArticles.push(articleId);
+            } else {
+                selectedArticles = selectedArticles.filter(id => id !== articleId);
+            }
+            console.log('選択中の記事ID:', selectedArticles); // デバッグ用
+            document.getElementById('deleteButton').disabled = selectedArticles.length === 0;
+        }
+
+        // 記事のコンテンツをパースする関数
+        function parseArticleContent(content) {
+            console.log('=== パース開始 ===');
+            console.log('元のコンテンツ:', content);
+
+            const result = {
+                field: '',
+                title: '',
+                url: '',
+                summary: [],
+                tags: []
+            };
+
+            // 分野を抽出
+            const fieldMatch = content.match(/分野「(.+?)」の記事/);
+            if (fieldMatch) {
+                result.field = fieldMatch[1];
+                console.log('分野を抽出:', result.field);
+            }
+
+            // タイトルを抽出
+            const titleRegex = /\[title\].*?\[\/title\](.*?)(?=https:\/\/)/s;
+            console.log('タイトル抽出用の正規表現:', titleRegex);
+            const titleMatch = content.match(titleRegex);
+            console.log('タイトルのマッチ結果:', titleMatch);
+            
+            if (titleMatch && titleMatch[1]) {
+                result.title = titleMatch[1].trim();
+                console.log('抽出したタイトル:', result.title);
+            } else {
+                console.log('タイトルの抽出に失敗');
+                // バックアップの抽出方法を試す
+                const backupTitleRegex = /\[title\](.*?)\[\/title\](.*?)https/s;
+                const backupTitleMatch = content.match(backupTitleRegex);
+                if (backupTitleMatch && backupTitleMatch[2]) {
+                    result.title = backupTitleMatch[2].trim();
+                    console.log('バックアップ方法で抽出したタイトル:', result.title);
+                }
+            }
+
+            // URLを抽出
+            const urlMatch = content.match(/(https:\/\/[^\s]+)/);
+            if (urlMatch) {
+                result.url = urlMatch[1];
+                console.log('抽出したURL:', result.url);
+
+                // 要約を抽出（URLの後ろからタグまでのテキスト）
+                const afterUrl = content.substring(content.indexOf(urlMatch[1]) + urlMatch[1].length);
+                console.log('URL以降のテキスト:', afterUrl);
+                const summaryMatch = afterUrl.match(/([^[]*?)タグ:/s);
+                if (summaryMatch && summaryMatch[1]) {
+                    const summaryText = summaryMatch[1].trim();
+                    result.summary = summaryText.split('-')
+                        .map(point => point.trim())
+                        .filter(Boolean);  // 空の文字列のみを除外
+                    console.log('抽出した要約:', result.summary);
+                }
+            }
+
+            // タグを抽出
+            const tagsMatch = content.match(/タグ: ([^[]+)/);
+            if (tagsMatch) {
+                result.tags = tagsMatch[1].split(',').map(tag => tag.trim());
+                console.log('抽出したタグ:', result.tags);
+            }
+
+            console.log('=== パース結果 ===');
+            console.log(result);
+            console.log('=== パース終了 ===');
+            return result;
+        }
+
+        // 記事一覧を読み込む
+        async function loadArticles() {
+            try {
+                const response = await fetch('/api/articles');
+                
+                if (!response.ok) {
+                    throw new Error('記事一覧の取得に失敗しました');
+                }
+
+                const data = await response.json();
+                console.log('取得した記事データ:', data); // デバッグ用
+                const container = document.getElementById('articlesContainer');
+                
+                if (data.articles && data.articles.length > 0) {
+                    container.innerHTML = data.articles
+                        .map(article => {
+                            console.log('記事データ:', article); // デバッグ用
+                            const parsedContent = parseArticleContent(article.content);
+                            return `
+                                <div class="article-item">
+                                    <div class="article-header">
+                                        <input type="checkbox" 
+                                               class="article-checkbox" 
+                                               onchange="handleCheckboxChange('${article.article_id}', this.checked)"
+                                        >
+                                        <div class="article-field">分野: ${parsedContent.field || '不明'}</div>
+                                    </div>
+                                    <div class="article-title">${parsedContent.title || 'タイトルなし'}</div>
+                                    <a href="${parsedContent.url}" class="article-url" target="_blank">${parsedContent.url || '#'}</a>
+                                    <div class="article-summary">
+                                        <div class="summary-title">要約:</div>
+                                        <ul class="summary-points">
+                                            ${parsedContent.summary.length > 0 
+                                                ? parsedContent.summary.map(point => {
+                                                    if (point.startsWith('これはテスト用の要約です')) {
+                                                        return `<li class="summary-point summary-header">${point}</li>`;
+                                                    }
+                                                    // *の前で改行を入れる
+                                                    const formattedPoint = point.replace(/\*/g, '\n*');
+                                                    return `<li class="summary-point" style="white-space: pre-line;">${formattedPoint}</li>`;
+                                                }).join('')
+                                                : '<li class="summary-point">要約なし</li>'
+                                            }
+                                        </ul>
+                                    </div>
+                                    <div class="article-tags">
+                                        ${parsedContent.tags.length > 0
+                                            ? parsedContent.tags.map(tag => `
+                                                <span class="tag">${tag}</span>
+                                            `).join('')
+                                            : '<span class="tag">タグなし</span>'
+                                        }
+                                    </div>
+                                </div>
+                            `;
+                        })
+                        .join('');
+                } else {
+                    container.innerHTML = '<div class="article-item">保存された記事はありません</div>';
+                }
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                document.getElementById('articlesContainer').innerHTML = 
+                    '<div class="article-item">エラーが発生しました</div>';
+            }
+        }
+
+        // 選択された記事を削除する
+        async function handleDelete() {
+            if (selectedArticles.length === 0) {
+                alert('削除する記事を選択してください');
+                return;
+            }
+
+            if (!confirm('選択された記事を削除してもよろしいですか？')) {
+                return;
+            }
+
+            try {
+                console.log('削除リクエスト - article_ids:', selectedArticles); // デバッグ用
+                const response = await fetch('/api/articles', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        article_ids: selectedArticles
+                    })
+                });
+
+                const data = await response.json();
+                console.log('削除レスポンス:', data); // デバッグ用
+
+                if (!response.ok) {
+                    throw new Error(data.message || '記事の削除に失敗しました');
+                }
+
+                alert(data.message || '記事を削除しました');
+
+                // 記事一覧を再読み込み
+                loadArticles();
+                
+                // 選択をリセット
+                selectedArticles = [];
+                document.getElementById('deleteButton').disabled = true;
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                alert(error.message || '記事の削除に失敗しました');
+            }
+        }
+
+        // ログアウト処理
+        async function handleLogout() {
+            try {
+                const response = await fetch('/logout', {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    window.location.href = '/';
+                } else {
+                    throw new Error('ログアウトに失敗しました');
+                }
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                alert('ログアウトに失敗しました');
+            }
+        }
+
+        // ページ読み込み時の処理
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/get-room-id');
+                
+                if (!response.ok) {
+                    throw new Error('Room IDの取得に失敗しました');
+                }
+
+                const data = await response.json();
+                
+                if (data && data.room_id) {
+                    document.getElementById('roomId').textContent = data.room_id;
+                } else {
+                    throw new Error('Room IDが見つかりません');
+                }
+
+                // 記事一覧を読み込む
+                await loadArticles();
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                document.getElementById('roomId').textContent = 'エラーが発生しました';
+            }
+        });
+    </script>
+</body>
+</html> 
