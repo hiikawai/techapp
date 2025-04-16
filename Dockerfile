@@ -13,7 +13,6 @@ FROM alpine:latest
 
 WORKDIR /app
 COPY --from=builder /app/main .
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/views ./views
 
 # アプリケーションの実行

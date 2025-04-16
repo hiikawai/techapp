@@ -41,8 +41,7 @@ func main() {
 	fieldController := controllers.NewFieldController()
 	articleController := controllers.NewArticleController()
 
-	// 静的ファイルの提供
-	e.Static("/static", "public")
+	// 静的ファイルの提供（削除）
 
 	// 認証関連のルーティング
 	e.GET("/", authController.ShowLogin)
