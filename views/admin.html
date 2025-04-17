@@ -18,6 +18,7 @@
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
         }
         h1 {
             color: #333;
@@ -111,20 +112,20 @@
             background-color: #c82333;
         }
         .logout-button {
-            display: block;
-            width: 200px;
-            margin: 0 auto;
-            padding: 0.75rem;
-            background-color: #dc3545;
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            padding: 0.5rem 1rem;
+            background-color: #6c757d;
             color: white;
             border: none;
             border-radius: 4px;
             font-size: 1rem;
             cursor: pointer;
-            text-align: center;
+            text-decoration: none;
         }
         .logout-button:hover {
-            background-color: #c82333;
+            background-color: #5a6268;
         }
         .add-field-form {
             margin: 2rem 0;
@@ -188,6 +189,7 @@
 </head>
 <body>
     <div class="container">
+        <button class="logout-button" onclick="handleLogout()">ログアウト</button>
         <h1>登録ワードの管理</h1>
         <div class="welcome-message">
             ログインに成功しました。ここは登録ワードの管理ページです。
@@ -220,7 +222,6 @@
         </div>
         <div class="nav-buttons">
             <a href="/articles" class="nav-button articles-button">過去の記事一覧へ</a>
-            <button class="nav-button logout-button" onclick="handleLogout()">ログアウト</button>
         </div>
     </div>
 
