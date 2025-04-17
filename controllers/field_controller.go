@@ -163,38 +163,56 @@ func (fc *FieldController) DeleteFields(c echo.Context) error {
 	supabaseURL := os.Getenv("SUPABASE_URL")
 	supabaseKey := os.Getenv("SUPABASE_KEY")
 
+	// 削除に成功した数をカウント
+	successCount := 0
+
 	// 各分野を削除
 	for _, fieldName := range requestBody.FieldNames {
+		// URLエンコードを適用
+		encodedRoomID := url.QueryEscape(roomID)
+		encodedFieldName := url.QueryEscape(fieldName)
+
 		// 削除クエリを構築
-		fullURL := supabaseURL + "/rest/v1/field?room_id=eq." + roomID + "&field_name=eq." + fieldName
+		fullURL := fmt.Sprintf("%s/rest/v1/field?room_id=eq.%s&field_name=eq.%s",
+			supabaseURL, encodedRoomID, encodedFieldName)
+
+		fmt.Printf("削除リクエスト - URL: %s\n", fullURL)
 
 		req, err := http.NewRequest("DELETE", fullURL, nil)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{
-				"message": "リクエストの作成に失敗しました",
-			})
+			fmt.Printf("リクエスト作成エラー: %v\n", err)
+			continue
 		}
 
 		req.Header.Set("apikey", supabaseKey)
 		req.Header.Set("Authorization", "Bearer "+supabaseKey)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Prefer", "return=minimal")
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{
-				"message": "APIリクエストに失敗しました",
-			})
+			fmt.Printf("削除リクエストエラー: %v\n", err)
+			continue
 		}
-		resp.Body.Close()
+		defer resp.Body.Close()
 
-		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-			return c.JSON(http.StatusInternalServerError, map[string]string{
-				"message": "分野の削除に失敗しました",
-			})
+		if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusOK {
+			successCount++
+			fmt.Printf("フィールド %s の削除に成功\n", fieldName)
+		} else {
+			bodyBytes, _ := io.ReadAll(resp.Body)
+			fmt.Printf("削除エラー - Status: %d, Body: %s\n", resp.StatusCode, string(bodyBytes))
 		}
 	}
 
+	if successCount == 0 {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": "分野の削除に失敗しました",
+		})
+	}
+
 	return c.JSON(http.StatusOK, map[string]string{
-		"message": "選択された分野を削除しました",
+		"message": fmt.Sprintf("%d個の分野を削除しました", successCount),
 	})
 }
 
