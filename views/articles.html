@@ -141,6 +141,24 @@
         .logout-button:hover {
             background-color: #5a6268;
         }
+        .admin-button {
+            position: absolute;
+            top: 5rem;
+            right: 2rem;
+            padding: 0.5rem 1rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            width: 80px;
+            text-align: center;
+        }
+        .admin-button:hover {
+            background-color: #218838;
+        }
         .article-checkbox {
             margin-right: 1rem;
             width: 20px;
@@ -173,6 +191,7 @@
 <body>
     <div class="container">
         <button class="logout-button" onclick="handleLogout()">ログアウト</button>
+        <a href="/admin" class="admin-button">ワード管理</a>
         <h1>記事一覧</h1>
         <div class="room-id">
             ルームID: <span id="roomId">読み込み中...</span>
@@ -182,7 +201,7 @@
         </button>
         <div id="articlesContainer"></div>
         <div class="nav-buttons">
-            <a href="/admin" class="nav-button fields-button">分野管理へ</a>
+            <a href="/admin" class="nav-button fields-button">ワード管理へ</a>
         </div>
     </div>
 
