@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>分野管理</title>
+    <title>登録ワードの管理</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -188,21 +188,21 @@
 </head>
 <body>
     <div class="container">
-        <h1>分野管理</h1>
+        <h1>登録ワードの管理</h1>
         <div class="welcome-message">
-            ログインに成功しました。ここは分野管理ページです。
+            ログインに成功しました。ここは登録ワードの管理ページです。
         </div>
         <div class="room-id">
             ルームID: <span id="roomId">読み込み中...</span>
         </div>
         <div class="add-field-form">
-            <h2>新しい分野を追加</h2>
+            <h2>新しいワードを追加</h2>
             <form id="addFieldForm" onsubmit="handleAddField(event)">
                 <div class="form-group">
                     <input type="text" 
                            id="fieldName" 
                            class="form-input" 
-                           placeholder="分野名を入力（カンマまたは読点で区切って複数入力可能: 例「Go、Python、Java」）"
+                           placeholder="興味のあるワードを入力（カンマまたは読点で区切って複数入力可能: 例「Go、Python、Java」）"
                            required
                     >
                     <button type="submit" class="add-button">追加</button>
@@ -210,12 +210,12 @@
             </form>
         </div>
         <div class="fields-container">
-            <h2>登録済み分野一覧</h2>
+            <h2>登録済みワード一覧</h2>
             <ul id="fieldsList" class="fields-list">
                 <li class="field-item">読み込み中...</li>
             </ul>
             <button id="deleteButton" class="delete-button" onclick="handleDelete()" disabled>
-                選択した分野を削除
+                選択したワードを削除
             </button>
         </div>
         <div class="nav-buttons">
@@ -241,7 +241,7 @@
 
         // 選択された分野を削除する
         async function handleDelete() {
-            if (!confirm('選択された分野を削除してもよろしいですか？')) {
+            if (!confirm('選択されたワードを削除してもよろしいですか？')) {
                 return;
             }
 
@@ -257,7 +257,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('分野の削除に失敗しました');
+                    throw new Error('ワードの削除に失敗しました');
                 }
 
                 const data = await response.json();
@@ -271,7 +271,7 @@
                 document.getElementById('deleteButton').disabled = true;
             } catch (error) {
                 console.error('エラーが発生しました:', error);
-                alert('分野の削除に失敗しました');
+                alert('ワードの削除に失敗しました');
             }
         }
 
@@ -281,7 +281,7 @@
                 const response = await fetch('/api/fields');
                 
                 if (!response.ok) {
-                    throw new Error('分野一覧の取得に失敗しました');
+                    throw new Error('登録ワード一覧の取得に失敗しました');
                 }
 
                 const data = await response.json();
@@ -314,7 +314,7 @@
                         `)
                         .join('');
                 } else {
-                    container.innerHTML = '<li class="field-item">登録された分野はありません</li>';
+                    container.innerHTML = '<li class="field-item">登録されたワードはありません</li>';
                 }
             } catch (error) {
                 console.error('エラーが発生しました:', error);
@@ -330,7 +330,7 @@
             const fieldName = fieldNameInput.value.trim();
 
             if (!fieldName) {
-                alert('分野名を入力してください');
+                alert('ワードを入力してください');
                 return;
             }
 
@@ -346,7 +346,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('分野の追加に失敗しました');
+                    throw new Error('ワードの追加に失敗しました');
                 }
 
                 const data = await response.json();
@@ -359,7 +359,7 @@
                 loadFields();
             } catch (error) {
                 console.error('エラーが発生しました:', error);
-                alert('分野の追加に失敗しました');
+                alert('ワードの追加に失敗しました');
             }
         }
 
