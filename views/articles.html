@@ -253,9 +253,8 @@
                 const summaryMatch = afterUrl.match(/([^[]*?)タグ:/s);
                 if (summaryMatch && summaryMatch[1]) {
                     const summaryText = summaryMatch[1].trim();
-                    result.summary = summaryText.split('-')
-                        .map(point => point.trim())
-                        .filter(Boolean);  // 空の文字列のみを除外
+                    // -で分割せずに、そのまま配列に格納
+                    result.summary = [summaryText];
                     console.log('抽出した要約:', result.summary);
                 }
             }
@@ -311,7 +310,7 @@
                                                         return `<li class="summary-point summary-header">${point}</li>`;
                                                     }
                                                     // *の前で改行を入れる
-                                                    const formattedPoint = point.replace(/\*/g, '\n*');
+                                                    const formattedPoint = point.replace(/\*/g, '\n* ');
                                                     return `<li class="summary-point" style="white-space: pre-line;">${formattedPoint}</li>`;
                                                 }).join('')
                                                 : '<li class="summary-point">要約なし</li>'
