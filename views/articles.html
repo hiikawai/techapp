@@ -81,8 +81,9 @@
         .summary-point {
             padding: 0;
             color: #666;
-            line-height: 1;
+            line-height: 1.9;
             margin: 0;
+            white-space: pre-wrap;
         }
         .summary-header {
             color: #333;
@@ -253,7 +254,7 @@
                 const summaryMatch = afterUrl.match(/([^[]*?)タグ:/s);
                 if (summaryMatch && summaryMatch[1]) {
                     const summaryText = summaryMatch[1].trim();
-                    // -で分割せずに、そのまま配列に格納
+                    // 改行を保持したまま配列に格納
                     result.summary = [summaryText];
                     console.log('抽出した要約:', result.summary);
                 }
@@ -309,8 +310,12 @@
                                                     if (point.startsWith('これはテスト用の要約です')) {
                                                         return `<li class="summary-point summary-header">${point}</li>`;
                                                     }
-                                                    // *の前で改行を入れる
-                                                    const formattedPoint = point.replace(/\*/g, '\n* ');
+                                                    console.log('改行前の文章:', point);
+                                                    // 3個以上の連続する改行を2個にまとめ、空白を保持
+                                                    const formattedPoint = point
+                                                        .replace(/\n{3,}/g, '\n\n')
+                                                        .replace(/ /g, '&nbsp;');  // 空白を&nbsp;に変換
+                                                    console.log('改行後の文章:', formattedPoint);
                                                     return `<li class="summary-point" style="white-space: pre-line;">${formattedPoint}</li>`;
                                                 }).join('')
                                                 : '<li class="summary-point">要約なし</li>'
