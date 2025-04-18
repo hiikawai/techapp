@@ -347,12 +347,15 @@
         async function handleAddField(event) {
             event.preventDefault();
             const fieldNameInput = document.getElementById('fieldName');
-            const fieldName = fieldNameInput.value.trim();
+            let fieldName = fieldNameInput.value.trim();
 
             if (!fieldName) {
                 alert('ワードを入力してください');
                 return;
             }
+
+            // 全角スペースを半角に変換し、複数のスペースを1つに統一
+            fieldName = fieldName.replace(/　/g, ' ').replace(/\s+/g, ' ').trim();
 
             try {
                 const response = await fetch('/api/fields', {
