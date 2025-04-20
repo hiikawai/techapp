@@ -357,6 +357,28 @@
             // 全角スペースを半角に変換し、複数のスペースを1つに統一
             fieldName = fieldName.replace(/　/g, ' ').replace(/\s+/g, ' ').trim();
 
+            // 単語の正規化処理
+            // 1. 全角英数字を半角に変換
+            fieldName = fieldName.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(match) {
+                const char = match.charCodeAt(0);
+                if (char >= 0xFF21 && char <= 0xFF3A) { // 全角A-Z
+                    return String.fromCharCode(char - 0xFF21 + 0x0041);
+                } else if (char >= 0xFF41 && char <= 0xFF5A) { // 全角a-z
+                    return String.fromCharCode(char - 0xFF41 + 0x0061);
+                } else if (char >= 0xFF10 && char <= 0xFF19) { // 全角0-9
+                    return String.fromCharCode(char - 0xFF10 + 0x0030);
+                }
+                return match;
+            });
+
+            // 2. 最初の文字を大文字に、それ以外を小文字に（英数字の場合のみ）
+            if (fieldName.length > 0) {
+                const firstChar = fieldName[0];
+                if ((firstChar >= 'A' && firstChar <= 'Z') || (firstChar >= 'a' && firstChar <= 'z')) {
+                    fieldName = firstChar.toUpperCase() + fieldName.slice(1).toLowerCase();
+                }
+            }
+
             try {
                 const response = await fetch('/api/fields', {
                     method: 'POST',
