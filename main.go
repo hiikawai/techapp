@@ -61,6 +61,9 @@ func main() {
 	e.GET("/api/articles", articleController.GetArticles, authController.RequireAuth)
 	e.DELETE("/api/articles", articleController.DeleteArticles, authController.RequireAuth)
 
+	e.GET("/keepalive", func(c echo.Context) error {
+		return c.String(http.StatusOK, "alive!")
+	})
 	// ポート番号の設定
 	port := os.Getenv("PORT")
 	if port == "" {
