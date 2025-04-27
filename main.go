@@ -64,6 +64,10 @@ func main() {
 	e.GET("/keepalive", func(c echo.Context) error {
 		return c.String(http.StatusOK, "alive!")
 	})
+	e.HEAD("/keepalive", func(c echo.Context) error {
+		return c.NoContent(http.StatusOK)
+	})
+
 	// ポート番号の設定
 	port := os.Getenv("PORT")
 	if port == "" {
